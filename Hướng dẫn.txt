@@ -1,0 +1,4 @@
+tải thư viện nêu trong requirement
+chạy test.py
+xem kết quả trong features/data/domain/raw
+muốn hiểu code thì đọc hoặc gpt
