@@ -4,10 +4,9 @@ from datetime import datetime
 
 class Config:
     # ===== Project Paths =====
-    BASE_DIR = Path(__file__).resolve().parent.parent
-    DATA_DIR = BASE_DIR / "data"
-    MODEL_DIR = DATA_DIR / "models"
-    LOG_DIR = BASE_DIR / "logs"
+    BASE_DIR = Path(__file__).resolve().parents[1]
+    DATA_DIR = BASE_DIR/ "features" / "data"
+    STORAGE_DIR = DATA_DIR / "domain" / "storage" / "data.db"
 
     # ===== Data Source =====
     EXCHANGE = "binance"       # For ccxt
@@ -15,7 +14,7 @@ class Config:
     TIMEFRAMES = ["1h", "1d", "1M"]
 
     # ===== Time Range =====
-    START_DATE = datetime(2020, 1, 1)
+    START_DATE = datetime(2017, 1, 1)
     END_DATE = datetime(2024, 1, 1)
 
     # ===== API and Storage =====

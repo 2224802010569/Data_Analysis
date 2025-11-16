@@ -1,4 +1,8 @@
 tải thư viện nêu trong requirement
 chạy test.py
-xem kết quả trong features/data/domain/raw
+xem kết quả trong features/data/domain/storage
 muốn hiểu code thì đọc hoặc gpt
+
+lưu ý: dữ liệu phải có ít nhất 50 dòng mới chạy engineering được, 
+nên tôi lấy từ 1/1/2017 
+(thực tế 1/8/2017 vì dữ liệu xa nhất có được chỉ đến đó)

@@ -1,13 +1,16 @@
 from app.config import config
-from features.data.services.fetch_ccxt_service import CCXTService
-from features.data.services.csv_service import CSVService
+from features.data.service.clean_service import CleanService
+from features.data.service.sql_service import SQLService
+from features.data.service.fetch_ccxt_service import CCXTService
+from features.data.service.csv_service import CSVService
 
 class FetchAndSaveDataUseCase:
     def __init__(self):
         self.fetch_port = CCXTService()
-        self.store_port = CSVService()
+        self.csv_service = CSVService()
+        self.sql_service = SQLService()
 
-    async def execute(
+    def execute(
         self,
         symbol: str = None,
         timeframes: list = None,
@@ -19,12 +22,10 @@ class FetchAndSaveDataUseCase:
         since = since or config.START_DATE
         until = until or config.END_DATE
 
-        print(f"🔄 Fetching data for {symbol} from {since.date()} to {until.date()}...")
-        total = 0
         for tf in timeframes:
             print(f"  ▶ timeframe = {tf} ...")
-            data = await self.fetch_port.fetch(symbol=symbol, timeframe=tf, since=since, until=until)
+            data = self.fetch_port.fetch(symbol=symbol, timeframe=tf, since=since, until=until)
             print(f"    → fetched {len(data)} Candles for {tf}")
-            self.store_port.save(symbol=symbol, data=data, timeframe=tf)
-            total += len(data)
-        print(f"✅ Fetch and save complete. Total Candles fetched across timeframes: {total}")
+            data = CleanService().execute(data)
+            self.csv_service.save(symbol=symbol, data=data, timeframe=tf)
+            self.sql_service.save(tf, data)
