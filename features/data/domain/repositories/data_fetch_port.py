@@ -9,5 +9,5 @@ class DataFetchPort(Protocol):
         timeframe: str,
         since: datetime,
         until: datetime,
-    ) -> List[Candle]:
+    ) -> list[Candle]:
         pass

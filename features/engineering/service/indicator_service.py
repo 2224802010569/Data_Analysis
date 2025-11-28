@@ -10,7 +10,7 @@ from features.engineering.domain.entities.indicator import Indicator, IndicatorV
 
 class IndicatorService:
 
-    def generate(self, df: pd.DataFrame) -> List[Indicator]:
+    def generate(self, df: pd.DataFrame) -> list[Indicator]:
         if df is None or df.empty:
             raise ValueError("Input DataFrame is empty.")
         df = df.copy()
@@ -35,7 +35,7 @@ class IndicatorService:
 
         timeframe = df["timeframe"].iloc[0] if "timeframe" in df.columns else "unknown"
 
-        indicators: List[Indicator] = []
+        indicators: list[Indicator] = []
 
         for _, row in df.iterrows():
             values: IndicatorValues = {

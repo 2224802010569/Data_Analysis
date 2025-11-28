@@ -8,5 +8,5 @@ class LoadUseCase:
         self.sql = SQLService()
         self.path = con.STORAGE_DIR
     
-    def load(self, timeframe: str = "1M") -> List[Engineering]:
+    def load(self, timeframe: str = "1M") -> list[Engineering]:
         return self.sql.load(timeframe)

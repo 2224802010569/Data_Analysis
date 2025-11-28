@@ -1,57 +1,83 @@
-from datetime import datetime
-import sqlite3
+from __future__ import annotations
 import json
+import sqlite3
+from datetime import datetime
 from app.config import config as con
 from features.engineering.domain.entities.engineering import Engineering
 
+entities = Engineering
 
 class SQLService:
 
     def __init__(self):
+        self.entity = entities
+        self.table = self.entity.__name__.lower()
         self.db_path = con.STORAGE_DIR
-        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+        self.fields = list(self.entity.__annotations__.keys())
         self._ensure_table()
+
+    def schema(self):
+        cols = []
+        for name, typ in self.entity.__annotations__.items():
+            if typ is str:
+                sql = "TEXT"
+            elif typ is int:
+                sql = "INTEGER"
+            elif typ is float:
+                sql = "REAL"
+            elif typ is datetime:
+                sql = "TEXT"
+            else:
+                sql = "TEXT"
+            cols.append(f"{name} {sql}")
+        return ", ".join(cols)
 
     def _ensure_table(self):
         with sqlite3.connect(self.db_path) as conn:
-            conn.execute("""
-            CREATE TABLE IF NOT EXISTS engineering (
-                timestamp TEXT,
-                timeframe TEXT,
-                indicator_json TEXT,
-                temporal_json TEXT
-            );
-            """)
+            conn.execute(f"CREATE TABLE IF NOT EXISTS {self.table} ({self.schema()})")
 
-    def save(self, entities: list[Engineering]):
-        if not entities: return
+    def save(self, items: list[entities]):
+        if not items:
+            return
+        rows = []
+        for it in items:
+            row = []
+            for f in self.fields:
+                v = getattr(it, f)
+                if isinstance(v, datetime):
+                    v = json.dumps(v.isoformat())
+                if isinstance(v, dict):
+                    v = json.dumps(v)
+                row.append(v)
+            rows.append(tuple(row))
+        placeholders = ",".join(["?"] * len(self.fields))
+        columns = ",".join(self.fields)
         with sqlite3.connect(self.db_path) as conn:
-            conn.executemany("""
-            INSERT INTO engineering (timestamp, timeframe, indicator_json, temporal_json)
-            VALUES (?, ?, ?, ?)
-            """,[(
-                e.timestamp.isoformat(), 
-                e.timeframe, 
-                json.dumps(e.indicator), 
-                json.dumps(e.temporal)
-                ) 
-                for e in entities])
-
-    def load(self, timeframe: str = "1M") -> list[Engineering]:
-        conn = sqlite3.connect(self.db_path)
-        cur = conn.cursor()
-        cur.execute("SELECT * \
-                FROM engineering \
-                WHERE timeframe=?", (timeframe,))
-        rows = cur.fetchall()
-        conn.close()
-        db = [
-            Engineering(
-                timestamp=datetime.fromtimestamp(ts / 1000) if isinstance(ts, (int, float)) else ts,
-                timeframe=tf,
-                indicator=json.loads(ind_json),
-                temporal=json.loads(temp_json)
+            conn.executemany(
+                f"INSERT INTO {self.table} ({columns}) VALUES ({placeholders})",
+                rows
             )
-            for ts, tf, ind_json, temp_json in rows
-        ]
-        return db
+
+    def load(self, timeframe: str = "1M") -> list[entities]:
+        with sqlite3.connect(self.db_path) as conn:
+            cur = conn.cursor()
+            cur.execute(
+                f"SELECT * FROM {self.table} WHERE timeframe = ?",
+                (timeframe,)
+            )
+            rows = cur.fetchall()
+        results = []
+        for row in rows:
+            kwargs = {}
+            for idx, f in enumerate(self.fields):
+                v = row[idx]
+                ann = self.entity.__annotations__[f]
+                if ann is datetime:
+                    if isinstance(v, str) and v.startswith('"') and v.endswith('"'):
+                        v = v.strip('"')
+                    v = datetime.fromisoformat(v)
+                elif ann is dict:
+                    v = json.loads(v)
+                kwargs[f] = v
+            results.append(self.entity(**kwargs))
+        return results

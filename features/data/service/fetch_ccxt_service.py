@@ -1,19 +1,18 @@
-import ccxt.async_support as ccxt
+import ccxt
 from datetime import datetime
 from app.config import config
 from features.data.domain.entities.candle import Candle
 
 class CCXTService:
-    async def fetch(
+    def fetch(
         self,
         symbol: str = None,
         timeframe: str = None,
         since: datetime = None,
         until: datetime = None,
     ):
-        # dùng config làm fallback
         symbol = symbol or config.SYMBOL
-        timeframe = timeframe or config.TIMEFRAMES[1]  # mặc định daily nếu không truyền
+        timeframe = timeframe or config.TIMEFRAMES[1]
         since = since or config.START_DATE
         until = until or config.END_DATE
 
@@ -27,7 +26,7 @@ class CCXTService:
         Candles = []
 
         while True:
-            ohlcv = await exchange.fetch_ohlcv(symbol, timeframe, since_ms, limit=1000)
+            ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since_ms, limit=1000)
             if not ohlcv:
                 break
 
@@ -37,12 +36,9 @@ class CCXTService:
                     break
                 Candles.append(Candle(ts, c[1], c[2], c[3], c[4], c[5], timeframe))
 
-            # stop conditions
             if len(ohlcv) < 1000 or ts >= until:
                 break
 
-            # next batch: set since to last timestamp + 1ms to avoid duplicate
             since_ms = int(ohlcv[-1][0]) + 1
 
-        await exchange.close()
         return Candles

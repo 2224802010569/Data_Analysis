@@ -31,7 +31,7 @@ class CSVService:
         print(f"✅ Saved {len(data)} Candles to {path}")
         return path
 
-    def load(self, tf: str = "1M") -> List[Candle]:
+    def load(self, tf: str = "1M") -> list[Candle]:
         filename = f"{con.SYMBOL.replace('/', '_')}_{tf}.csv"
         path = self.base_dir / filename
 
@@ -39,7 +39,7 @@ class CSVService:
             print(f"⚠️ CSV file not found: {path}")
             return []
 
-        candles: List[Candle] = []
+        candles: list[Candle] = []
 
         with path.open("r", newline="", encoding=con.CSV_ENCODING) as f:
             reader = csv.reader(f)

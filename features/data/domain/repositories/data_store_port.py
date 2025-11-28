@@ -6,5 +6,5 @@ class DataStorePort(Protocol):
             self, 
             symbol: str, 
             data: 
-            List[Candle]) -> None:
+            list[Candle]) -> None:
         pass

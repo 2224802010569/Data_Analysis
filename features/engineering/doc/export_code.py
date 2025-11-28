@@ -1,7 +1,7 @@
 import os
 from docx import Document
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 SERVICE_NAME = "Feature_engineer"
 OUTPUT_NAME = f"{VERSION}_{SERVICE_NAME}.docx"
 

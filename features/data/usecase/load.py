@@ -10,7 +10,7 @@ class LoadUseCase:
         self.sql = SQLService()
         self.path = con.STORAGE_DIR
     
-    def load(self, type: str ="sql", timeframe: str = "1M") -> List[Candle]:
+    def load(self, type: str ="sql", timeframe: str = "1M") -> list[Candle]:
         match type:
             case "sql":
                 return self.sql.load(timeframe)

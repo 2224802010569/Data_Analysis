@@ -1,3 +1,4 @@
 ccxt
 pydantic_settings
 ta
+hmmlearn

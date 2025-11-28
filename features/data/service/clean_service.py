@@ -18,8 +18,8 @@ class CleanService:
 
     # 1) Ensure timestamp is datetime
     @staticmethod
-    def _ensure_datetime(candles: List[Candle]) -> List[Candle]:
-        result: List[Candle] = []
+    def _ensure_datetime(candles: list[Candle]) -> list[Candle]:
+        result: list[Candle] = []
         for c in candles:
             if c is None:
                 continue
@@ -44,8 +44,8 @@ class CleanService:
         return True
 
     # 2) Fill invalid numeric fields with fallback value
-    def _fill_numeric(self, candles: List[Candle]) -> List[Candle]:
-        out: List[Candle] = []
+    def _fill_numeric(self, candles: list[Candle]) -> list[Candle]:
+        out: list[Candle] = []
         for c in candles:
             o = c.open if self._is_valid_number(c.open) else self.fallback_numeric
             h = c.high if self._is_valid_number(c.high) else self.fallback_numeric
@@ -68,9 +68,9 @@ class CleanService:
     # 3) Deduplicate: remove duplicates where timestamp and timeframe both match.
     # Keep the last seen candle for that (preserve input order).
     # If same timestamp but different timeframe -> keep both.
-    def _deduplicate(self, candles: List[Candle]) -> List[Candle]:
+    def _deduplicate(self, candles: list[Candle]) -> list[Candle]:
         seen = {}  # key: (timestamp, timeframe) -> index in output
-        out: List[Candle] = []
+        out: list[Candle] = []
 
         for c in candles:
             key = (c.timestamp, c.timeframe)
@@ -83,7 +83,7 @@ class CleanService:
         return out
 
     # Public method: perform cleaning pipeline
-    def execute(self, candles: List[Candle]) -> List[Candle]:
+    def execute(self, candles: list[Candle]) -> list[Candle]:
         if not candles:
             return []
         step1 = self._ensure_datetime(candles)
