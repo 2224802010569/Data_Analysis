@@ -46,6 +46,12 @@ class ChartManager {
       rightPriceScale: { scaleMargins: { top: 0.1, bottom: 0.1 } },
       timeScale: { timeVisible: true, secondsVisible: false },
     });
+    this._sub = this.chart
+      .timeScale()
+      .subscribeVisibleLogicalRangeChange((range) => {
+        if (!range) return;
+        if (range.from <= 0) this.tryExpand();
+      });
     this.candleSeries = this.chart.addCandlestickSeries({
       upColor: "#26a69a",
       downColor: "#ef5350",
@@ -62,36 +68,20 @@ class ChartManager {
   }
 
   recToPoint(rec) {
-    const ts = rec.timestamp;
-    const date = new Date(ts);
-    const hasTime =
-      date.getUTCHours() !== 0 ||
-      date.getUTCMinutes() !== 0 ||
-      date.getUTCSeconds() !== 0;
-    if (hasTime) {
-      return {
-        time: Math.floor(date.getTime() / 1000),
-        open: Number(rec.open),
-        high: Number(rec.high),
-        low: Number(rec.low),
-        close: Number(rec.close),
-      };
-    } else {
-      const y = date.getUTCFullYear();
-      const m = String(date.getUTCMonth() + 1).padStart(2, "0");
-      const d = String(date.getUTCDate()).padStart(2, "0");
-      return {
-        time: `${y}-${m}-${d}`,
-        open: Number(rec.open),
-        high: Number(rec.high),
-        low: Number(rec.low),
-        close: Number(rec.close),
-      };
-    }
+    const t = new Date(rec.timestamp).getTime();
+    return {
+      time: Math.floor(t / 1000),
+      open: Number(rec.open),
+      high: Number(rec.high),
+      low: Number(rec.low),
+      close: Number(rec.close),
+    };
   }
+
   setAllData(arr) {
     this.allData = arr;
     this.chart.removeSeries(this.candleSeries);
+    this.chart.timeScale().unsubscribeVisibleLogicalRangeChange(this._sub);
     this.candleSeries = this.chart.addCandlestickSeries({
       upColor: "#26a69a",
       downColor: "#ef5350",
