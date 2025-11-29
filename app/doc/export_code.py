@@ -1,8 +1,8 @@
 import os
 from docx import Document
 
-VERSION = "1.3.0"
-SERVICE_NAME = "Data_analysis"
+VERSION = "1.0.1"
+SERVICE_NAME = "font_end"
 OUTPUT_NAME = f"{VERSION}_{SERVICE_NAME}.docx"
 
 def export_code():

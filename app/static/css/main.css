@@ -1,0 +1,7 @@
+/* static/css/main.css */
+body { font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; }
+
+/* small custom tweaks */
+.card { border-radius: 0.5rem; }
+.tf-btn.active { background-color: #0d6efd !important; color: white !important; border-color: #0d6efd !important; }
+#chart { background: white; }
