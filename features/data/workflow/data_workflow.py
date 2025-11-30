@@ -6,7 +6,6 @@ from features.data.usecase.load import LoadUseCase
 
 class DataWorkflow:
     def run(self, type: str = "sql", timeframe: str = "1M"):
-        """Tải dữ liệu từ SQLite hoặc CSV; nếu chưa có thì fetch mới."""
         data = LoadUseCase().load(type=type, timeframe=timeframe)
         if not data:
             print(f"fetching new data...")

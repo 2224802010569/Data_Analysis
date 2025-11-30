@@ -1,0 +1,19 @@
+#reco-table tbody tr td {
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+#reco-table thead th {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pagination .page-item .page-link {
+    cursor: pointer;
+}
+
+.tf-btn.active {
+    color: #fff !important;
+    background-color: #0d6efd !important;
+    border-color: #0d6efd !important;
+}

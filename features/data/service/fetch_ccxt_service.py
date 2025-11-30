@@ -29,16 +29,12 @@ class CCXTService:
             ohlcv = exchange.fetch_ohlcv(symbol, timeframe, since_ms, limit=1000)
             if not ohlcv:
                 break
-
             for c in ohlcv:
                 ts = datetime.utcfromtimestamp(c[0] / 1000)
                 if ts > until:
                     break
                 Candles.append(Candle(ts, c[1], c[2], c[3], c[4], c[5], timeframe))
-
             if len(ohlcv) < 1000 or ts >= until:
                 break
-
             since_ms = int(ohlcv[-1][0]) + 1
-
         return Candles

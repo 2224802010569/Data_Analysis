@@ -5,18 +5,9 @@ import math
 from features.data.domain.entities.candle import Candle
 
 class CleanService:
-    """
-    CleanUseCase:
-        - ensure timestamps are datetime (bỏ candle khác loại)
-        - deduplicate by timestamp (if same timestamp AND same timeframe -> keep last)
-        If same timestamp but different timeframe -> keep both
-        - replace invalid numeric (None or NaN) with fallback value
-    """
-
     def __init__(self, fallback_numeric: float = 0.0):
         self.fallback_numeric = float(fallback_numeric)
 
-    # 1) Ensure timestamp is datetime
     @staticmethod
     def _ensure_datetime(candles: list[Candle]) -> list[Candle]:
         result: list[Candle] = []
@@ -26,8 +17,6 @@ class CleanService:
             if isinstance(c.timestamp, datetime):
                 result.append(c)
             else:
-                # skip if timestamp is not datetime
-                # you can log here if needed
                 continue
         return result
 
@@ -43,7 +32,6 @@ class CleanService:
             return False
         return True
 
-    # 2) Fill invalid numeric fields with fallback value
     def _fill_numeric(self, candles: list[Candle]) -> list[Candle]:
         out: list[Candle] = []
         for c in candles:
@@ -52,8 +40,6 @@ class CleanService:
             l = c.low if self._is_valid_number(c.low) else self.fallback_numeric
             cl = c.close if self._is_valid_number(c.close) else self.fallback_numeric
             v = c.volume if self._is_valid_number(c.volume) else self.fallback_numeric
-
-            # create new Candle (or you can modify in-place)
             out.append(Candle(
                 timestamp=c.timestamp,
                 open=float(o),
@@ -65,9 +51,6 @@ class CleanService:
             ))
         return out
 
-    # 3) Deduplicate: remove duplicates where timestamp and timeframe both match.
-    # Keep the last seen candle for that (preserve input order).
-    # If same timestamp but different timeframe -> keep both.
     def _deduplicate(self, candles: list[Candle]) -> list[Candle]:
         seen = {}  # key: (timestamp, timeframe) -> index in output
         out: list[Candle] = []
@@ -82,7 +65,6 @@ class CleanService:
                 out.append(c)
         return out
 
-    # Public method: perform cleaning pipeline
     def execute(self, candles: list[Candle]) -> list[Candle]:
         if not candles:
             return []

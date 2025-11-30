@@ -1,16 +1,17 @@
 import sys
 from pathlib import Path
+
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from flask import Flask
 from app.router.main_router import main_router
-from app.router.api_data_router import api_data_router
+from app.router.recommend_router import recommend_router
 
 def create_app():
     app = Flask(__name__)
     app.register_blueprint(main_router)
-    app.register_blueprint(api_data_router, url_prefix="/api")
+    app.register_blueprint(recommend_router)
     return app
 
 app = create_app()
