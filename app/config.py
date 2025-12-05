@@ -15,7 +15,8 @@ class Config:
 
     # ===== Time Range =====
     START_DATE = datetime(2017, 1, 1)
-    END_DATE = datetime(2024, 1, 1)
+    #END_DATE = datetime(2024, 1, 1)
+    END_DATE = datetime(2025, 1, 1)
 
     # ===== API and Storage =====
     API_TIMEOUT = 10           # seconds

@@ -2,6 +2,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import datetime
+import pandas as pd # <--- Thêm dòng này
 from app.config import config as con
 from features.label.domain.entities.label import Label
 
@@ -72,12 +73,36 @@ class SQLService:
             for idx, f in enumerate(self.fields):
                 v = row[idx]
                 ann = self.entity.__annotations__[f]
-                if ann is datetime:
+                # Logic check type đơn giản hóa
+                if "datetime" in str(ann):
                     if isinstance(v, str) and v.startswith('"') and v.endswith('"'):
                         v = v.strip('"')
-                    v = datetime.fromisoformat(v)
-                elif ann is dict:
-                    v = json.loads(v)
+                    try:
+                        v = datetime.fromisoformat(v)
+                    except:
+                        pass
+                elif "dict" in str(ann):
+                    try:
+                        v = json.loads(v)
+                    except:
+                        pass
                 kwargs[f] = v
             results.append(self.entity(**kwargs))
         return results
+
+    # --- HÀM MỚI THÊM ---
+    def get_all_as_df(self, timeframe: str = "1M") -> pd.DataFrame:
+        """Load label và chuyển về DataFrame chuẩn"""
+        items = self.load(timeframe)
+        if not items:
+            return pd.DataFrame()
+        
+        data = []
+        for item in items:
+            data.append({
+                "timestamp": item.t0,  # Map t0 thành timestamp để khớp với Engineering
+                "label": item.label,
+                "timeframe": item.timeframe
+            })
+        
+        return pd.DataFrame(data)

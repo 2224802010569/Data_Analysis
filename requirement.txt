@@ -2,3 +2,7 @@ ccxt
 pydantic_settings
 ta
 hmmlearn
+tensorflow
+scikit-learn 
+pandas 
+numpy
