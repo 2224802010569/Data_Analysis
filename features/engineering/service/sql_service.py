@@ -2,8 +2,6 @@ from __future__ import annotations
 import json
 import sqlite3
 from datetime import datetime
-import pandas as pd  # <--- Thêm dòng này
-from dataclasses import asdict # <--- Thêm dòng này
 from app.config import config as con
 from features.engineering.domain.entities.engineering import Engineering
 
@@ -48,10 +46,7 @@ class SQLService:
                 v = getattr(it, f)
                 if isinstance(v, datetime):
                     v = json.dumps(v.isoformat())
-                if isinstance(v, dict) or hasattr(v, '__dataclass_fields__'):
-                    # Tự động convert dict hoặc dataclass thành chuỗi JSON để lưu
-                    if hasattr(v, '__dataclass_fields__'):
-                        v = asdict(v)
+                if isinstance(v, dict):
                     v = json.dumps(v)
                 row.append(v)
             rows.append(tuple(row))
@@ -77,49 +72,12 @@ class SQLService:
             for idx, f in enumerate(self.fields):
                 v = row[idx]
                 ann = self.entity.__annotations__[f]
-                # Lưu ý: Vì có import future annotations, logic check type có thể cần điều chỉnh
-                # ở đây mình giữ nguyên logic cũ của bạn, chỉ bổ sung try-catch cho json
-                if "datetime" in str(ann):
+                if ann is datetime:
                     if isinstance(v, str) and v.startswith('"') and v.endswith('"'):
                         v = v.strip('"')
-                    try:
-                        v = datetime.fromisoformat(v)
-                    except:
-                        pass
-                elif "dict" in str(ann) or "Values" in str(ann):
-                    try:
-                        v = json.loads(v)
-                        # Nếu class đích cần object (IndicatorValues), code này trả về dict
-                        # Engineering sẽ nhận dict và hoạt động bình thường nếu là TypedDict
-                    except:
-                        pass
+                    v = datetime.fromisoformat(v)
+                elif ann is dict:
+                    v = json.loads(v)
                 kwargs[f] = v
             results.append(self.entity(**kwargs))
         return results
-
-    # --- HÀM MỚI THÊM ---
-    def get_all_as_df(self, timeframe: str = "1M") -> pd.DataFrame:
-        """Load dữ liệu và chuyển đổi sang DataFrame phẳng cho Machine Learning"""
-        items = self.load(timeframe)
-        if not items:
-            return pd.DataFrame()
-        
-        flat_data = []
-        for item in items:
-            row = {
-                "timestamp": item.timestamp,
-                "timeframe": item.timeframe
-            }
-            # Phẳng hóa (Flatten) Indicator
-            if isinstance(item.indicator, dict):
-                row.update(item.indicator)
-            
-            # Phẳng hóa Temporal (nếu là dataclass thì dùng asdict, nếu dict thì update luôn)
-            if hasattr(item.temporal, '__dataclass_fields__'):
-                row.update(asdict(item.temporal))
-            elif isinstance(item.temporal, dict):
-                row.update(item.temporal)
-                
-            flat_data.append(row)
-            
-        return pd.DataFrame(flat_data)

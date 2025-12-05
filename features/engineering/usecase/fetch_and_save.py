@@ -2,7 +2,7 @@ from app.config import config
 from features.engineering.service.sql_service import SQLService
 from features.engineering.usecase.combine import CombineUseCase
 
-class FetchAndSaveUseCase:
+class FetchAndSaveDataUseCase:
     def __init__(self):
         self.sql = SQLService()
 

@@ -6,60 +6,62 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>Bitcoin Forecast</title>
 
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
 
+    <!-- Lightweight Charts (TradingView-like) -->
     <script src="https://unpkg.com/lightweight-charts@4.0.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 
 <body class="bg-light">
     <div class="container py-3">
         <header class="d-flex align-items-center justify-content-between mb-3">
-            <h1 class="h4 mb-0 fw-bold text-primary">BITCOIN FORECAST</h1>
+            <h1 class="h4 mb-0">BITCOIN FORECAST</h1>
 
+            <!-- include Bootstrap dropdown/menu partial -->
             {% include "partials/menu.html" %}
         </header>
 
         <section class="row mb-3 g-3 align-items-stretch">
             <div class="col-md-4">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card h-100">
                     <div class="card-body text-center">
-                        <p class="mb-1 text-muted small fw-bold">GIÁ ĐÓNG CỬA</p>
-                        <div class="h3 mb-0 fw-bold" id="last-price">$0</div>
+                        <p class="mb-1 text-muted small">Giá lịch sử cuối cùng</p>
+                        <div class="h5 mb-0" id="last-price">$0</div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card h-100">
                     <div class="card-body text-center">
-                        <p class="mb-1 text-muted small fw-bold">ĐỘ TIN CẬY AI</p>
-                        <div class="h3 mb-0 fw-bold" id="forecast-price">0%</div>
-                        <div class="small text-muted" id="forecast-change">Confidence Score</div>
+                        <p class="mb-1 text-muted small">Dự báo cuối kỳ</p>
+                        <div class="h5 mb-0" id="forecast-price">$0</div>
+                        <div class="small text-success" id="forecast-change">+0</div>
                     </div>
                 </div>
             </div>
 
             <div class="col-md-4">
-                <div class="card h-100 shadow-sm border-0">
+                <div class="card h-100">
                     <div class="card-body text-center">
-                        <p class="mb-1 text-muted small fw-bold">KHUYẾN NGHỊ</p>
-                        <div class="h3 mb-0 fw-bold" id="recommend-text">—</div>
+                        <p class="mb-1 text-muted small">Khuyến nghị hiện tại</p>
+                        <div class="h5 mb-0" id="recommend-text">—</div>
                     </div>
                 </div>
             </div>
         </section>
 
-        <section class="card mb-3 shadow-sm border-0">
-            <div class="card-body p-0" style="height: 500px; position: relative; overflow: hidden;">
+        <section class="card mb-3">
+            <div class="card-body" style="height:460px; padding:0;">
                 <div id="chart" style="width:100%; height:100%;"></div>
             </div>
         </section>
-        
         {% include "partials/timeframe.html" %}
     </div>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
