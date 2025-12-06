@@ -1,3 +1,10 @@
+// ====================================================================
+// recommend.js — Google Timeline Gantt (FULL FIXED VERSION)
+// ====================================================================
+
+// ---------------------------------------------------------
+// API client
+// ---------------------------------------------------------
 class RecommendApi {
   constructor(base = "/api") {
     this.base = base;
@@ -8,272 +15,325 @@ class RecommendApi {
       tf
     )}&page=${page}&page_size=${page_size}`;
     const res = await fetch(url, { cache: "no-cache" });
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
-    if (!json || json.status !== "ok") {
-      throw new Error("Invalid response");
-    }
+    if (!json || json.status !== "ok") throw new Error("Invalid response");
     return json;
   }
 }
 
-// small helpers
-function safeGet(rec, keys) {
-  for (const k of keys) {
-    if (rec[k] !== undefined && rec[k] !== null) return rec[k];
-  }
-  return null;
+// ---------------------------------------------------------
+// Utility
+// ---------------------------------------------------------
+function parseDate(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
 }
 
-function parseDate(value) {
-  if (!value) return null;
-  // value may already be ISO string or timestamp number
-  if (typeof value === "number") return new Date(value);
-  // try numeric string
-  if (
-    !isNaN(value) &&
-    String(value).length >= 10 &&
-    String(value).length <= 13
-  ) {
-    const n = Number(value);
-    return new Date(n);
-  }
-  // fallback parse
-  const d = new Date(value);
-  if (!isNaN(d)) return d;
-  return null;
+function labelKey(v) {
+  return v ? String(v).toLowerCase() : "none";
 }
 
-function fmtDate(dt) {
-  if (!dt) return "—";
-  // show yyyy-mm-dd hh:mm
-  try {
-    const opts = {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-    return dt.toLocaleString(undefined, opts).replace(",", "");
-  } catch (e) {
-    return dt.toString();
-  }
-}
+const DEFAULT_COLORS = {
+  buy: "#0f9d58",
+  sell: "#db4437",
+  strong: "#4285f4",
+  weak: "#f4b400",
+  none: "#9e9e9e",
+};
 
-function mapLabel(label) {
-  if (!label) return { text: "—", cls: "badge bg-secondary" };
-  const low = String(label).toLowerCase();
-  switch (low) {
-    case "buy":
-      return { text: "MUA", cls: "badge bg-success" };
-    case "sell":
-      return { text: "BÁN", cls: "badge bg-danger" };
-    case "strong":
-      return { text: "MẠNH", cls: "badge bg-primary" };
-    case "weak":
-      return { text: "YẾU", cls: "badge bg-warning text-dark" };
-    case "none":
-    default:
-      return { text: String(label).toUpperCase(), cls: "badge bg-secondary" };
-  }
-}
-
-class RecommendApp {
+// ---------------------------------------------------------
+// Timeline Gantt
+// ---------------------------------------------------------
+class TimelineGantt {
   constructor(opts = {}) {
     this.tf = opts.tf || "1M";
-    this.page = 1;
-    this.pageSize = opts.pageSize || 20;
+    this.pageSize = opts.pageSize || 15;
+
+    this.chartEl = document.getElementById(opts.chartId || "ganttChart");
+    this.paginationEl = document.getElementById(
+      opts.paginationId || "pagination"
+    );
+
     this.api = new RecommendApi(opts.base || "/api");
 
-    // DOM
+    this.page = 1;
+    this.totalPages = 1;
+
     this.tfButtons = document.querySelectorAll(".tf-btn");
-    this.tbody = document.querySelector("#reco-table tbody");
-    this.pagination = document.getElementById("pagination");
 
-    this.init();
+    google.charts.load("current", { packages: ["timeline"] });
+    google.charts.setOnLoadCallback(() => {
+      this.setupTfButtons();
+      this.loadPage(1);
+    });
   }
 
-  init() {
-    this.setupTfButtons();
-    this.loadPage(1);
-  }
-
+  // ---------------------------------------------------------
+  // Timeframe buttons
+  // ---------------------------------------------------------
   setupTfButtons() {
     if (!this.tfButtons) return;
+
     this.tfButtons.forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
+      btn.addEventListener("click", async () => {
         const tf = btn.dataset.tf;
         if (!tf) return;
+
         this.tf = tf;
+
+        // ==== FIX #4 TF change (DEBUG) ====
+        console.log("Timeframe changed to:", this.tf);
+
         this.tfButtons.forEach((b) => {
           b.classList.remove("active", "btn-primary");
           b.classList.add("btn-outline-primary");
         });
+
         btn.classList.add("active", "btn-primary");
         btn.classList.remove("btn-outline-primary");
+
         await this.loadPage(1);
       });
     });
   }
 
-  showLoadingRow() {
-    if (!this.tbody) return;
-    this.tbody.innerHTML = `
-      <tr>
-        <td colspan="3" class="text-center py-4">
-          <div class="spinner-border" role="status" aria-hidden="true"></div>
-          <div class="small mt-2">Đang tải...</div>
-        </td>
-      </tr>`;
-  }
-
-  showEmpty() {
-    if (!this.tbody) return;
-    this.tbody.innerHTML = `
-      <tr>
-        <td colspan="3" class="text-center text-muted py-4">Không có dữ liệu</td>
-      </tr>`;
-  }
-
+  // ---------------------------------------------------------
+  // Load page
+  // ---------------------------------------------------------
   async loadPage(page = 1) {
+    page = Math.max(1, Math.floor(page));
     this.page = page;
-    if (!this.tbody) return;
-    this.showLoadingRow();
+
     try {
       const res = await this.api.fetchRecommendations({
         tf: this.tf,
         page: this.page,
         page_size: this.pageSize,
       });
+
       const records = Array.isArray(res.records) ? res.records : [];
-      const totalPages = Number(res.total_pages) || 1;
-      if (!records.length) {
-        this.showEmpty();
-      } else {
-        this.renderRows(records);
+      this.totalPages = Math.max(1, Number(res.total_pages) || 1);
+
+      console.log("DATA RAW (first 2) =>", records.slice(0, 2));
+
+      // If out-of-range, clamp & reload 1 time
+      if (this.page > this.totalPages) {
+        this.page = this.totalPages;
+
+        const res2 = await this.api.fetchRecommendations({
+          tf: this.tf,
+          page: this.page,
+          page_size: this.pageSize,
+        });
+
+        this.renderTimeline(res2.records || []);
+        this.renderPagination(this.totalPages, this.page);
+        return;
       }
-      this.renderPagination(totalPages, this.page);
+
+      this.renderTimeline(records);
+      this.renderPagination(this.totalPages, this.page);
     } catch (err) {
-      console.error("Error loading recommendations", err);
-      this.tbody.innerHTML = `
-        <tr>
-          <td colspan="3" class="text-center text-danger py-4">Lỗi khi tải dữ liệu: ${err.message}</td>
-        </tr>`;
-      this.pagination.innerHTML = "";
+      console.error("loadPage error:", err);
+      if (this.chartEl)
+        this.chartEl.innerHTML =
+          "<div class='text-center text-danger p-3'>Lỗi tải dữ liệu</div>";
+      if (this.paginationEl) this.paginationEl.innerHTML = "";
     }
   }
 
-  renderRows(records) {
-    const rows = records.map((rec) => {
-      // robust field lookup: t0/t1 or timestamp_start/timestamp_end or start/end
-      const t0v = safeGet(rec, [
-        "t0",
-        "t0_str",
-        "timestamp_start",
-        "timestamp0",
-        "start",
-        "from",
-      ]);
-      const t1v = safeGet(rec, [
-        "t1",
-        "t1_str",
-        "timestamp_end",
-        "timestamp1",
-        "end",
-        "to",
-      ]);
-      const d0 = parseDate(t0v);
-      const d1 = parseDate(t1v);
-      const lbl = safeGet(rec, ["label", "Label", "recommendation", "action"]);
-      const mapped = mapLabel(lbl);
+  // ---------------------------------------------------------
+  // Render Timeline Gantt
+  // ---------------------------------------------------------
+  renderTimeline(records) {
+    if (!this.chartEl) return;
 
-      return `
-        <tr>
-          <td style="width:40%">${fmtDate(d0)}</td>
-          <td style="width:40%">${fmtDate(d1)}</td>
-          <td style="width:20%"><span class="${mapped.cls}">${
-        mapped.text
-      }</span></td>
-        </tr>`;
-    });
-    this.tbody.innerHTML = rows.join("\n");
+    const dataTable = new google.visualization.DataTable();
+    dataTable.addColumn({ type: "string", id: "Row" });
+    dataTable.addColumn({ type: "string", id: "Bar" });
+    dataTable.addColumn({ type: "date", id: "Start" });
+    dataTable.addColumn({ type: "date", id: "End" });
+
+    const rows = records
+      .map((r) => {
+        const start = parseDate(r.t0);
+        const end = parseDate(r.t1);
+        if (!start || !end) return null;
+        return {
+          key: labelKey(r.label),
+          start,
+          end,
+        };
+      })
+      .filter((x) => x);
+
+    if (!rows.length) {
+      this.chartEl.innerHTML =
+        "<div class='text-center text-muted p-3'>Không có dữ liệu</div>";
+      return;
+    }
+
+    const labelOrder = ["buy", "sell", "strong", "weak"];
+    const extra = [
+      ...new Set(rows.map((r) => r.key).filter((k) => !labelOrder.includes(k))),
+    ];
+    const uniqueLabels = labelOrder.concat(extra);
+
+    const tableRows = rows.map((r) => [
+      r.key.toUpperCase(),
+      "",
+      r.start,
+      r.end,
+    ]);
+    dataTable.addRows(tableRows);
+
+    const colors = uniqueLabels.map(
+      (k) => DEFAULT_COLORS[k] || DEFAULT_COLORS.none
+    );
+
+    const rowCount = uniqueLabels.length;
+    const height = Math.max(200, rowCount * 50 + 80);
+
+    // ==== FIX #2 Width ====
+    this.chartEl.style.width = "100%";
+    this.chartEl.style.height = height + "px";
+
+    // ---------------------------------------------------------
+    // ==== FIX #3 Timeline Ticks (Dynamic by timeframe) ====
+    // ---------------------------------------------------------
+    const starts = rows.map((r) => r.start.getTime());
+    const ends = rows.map((r) => r.end.getTime());
+    const minT = new Date(Math.min(...starts));
+    const maxT = new Date(Math.max(...ends));
+
+    const ticks = [];
+
+    if (this.tf === "1M") {
+      let d = new Date(minT.getFullYear(), minT.getMonth(), 1);
+      const lim = new Date(maxT.getFullYear(), maxT.getMonth() + 1, 1);
+      while (d <= lim) {
+        ticks.push(new Date(d));
+        d.setMonth(d.getMonth() + 1);
+      }
+    } else if (this.tf === "1D") {
+      let d = new Date(minT);
+      while (d <= maxT) {
+        ticks.push(new Date(d));
+        d.setDate(d.getDate() + 1);
+      }
+    } else if (this.tf === "1H") {
+      let d = new Date(minT);
+      while (d <= maxT) {
+        ticks.push(new Date(d));
+        d.setHours(d.getHours() + 1);
+      }
+    }
+
+    const options = {
+      height,
+      colors,
+      timeline: {
+        colorByRowLabel: true,
+        showRowLabels: true,
+      },
+      hAxis: { ticks },
+    };
+
+    const chart = new google.visualization.Timeline(this.chartEl);
+    chart.draw(dataTable, options);
   }
 
-  // pagination: type A (full numbered). we'll show a window around current page
+  // ---------------------------------------------------------
+  // Pagination
+  // ---------------------------------------------------------
   renderPagination(totalPages, current) {
-    const maxButtons = 7;
-    const ul = this.pagination;
+    const ul = this.paginationEl;
     if (!ul) return;
+
     if (totalPages <= 1) {
       ul.innerHTML = "";
       return;
     }
 
-    const createLi = (text, disabled, active, page) => {
-      const cls = `page-item ${disabled ? "disabled" : ""} ${
-        active ? "active" : ""
-      }`.trim();
-      const aria = active ? 'aria-current="page"' : "";
-      const inner = `<a class="page-link" href="#" data-page="${page}" ${aria}>${text}</a>`;
-      return `<li class="${cls}">${inner}</li>`;
-    };
+    const maxButtons = 5;
 
-    const parts = [];
-    parts.push(createLi("Prev", current <= 1, false, current - 1));
+    const make = (text, page, disabled, active) => `
+      <li class="page-item ${disabled ? "disabled" : ""} ${
+      active ? "active" : ""
+    }">
+        <a class="page-link" data-page="${page}" href="#">${text}</a>
+      </li>
+    `;
 
-    let start = Math.max(1, current - Math.floor(maxButtons / 2));
-    let end = start + maxButtons - 1;
-    if (end > totalPages) {
-      end = totalPages;
+    let html = "";
+
+    // Prev
+    html += make("Prev", Math.max(1, current - 1), current <= 1, false);
+
+    // ---------------------------------------------------------
+    // ==== FIX #1 Pagination Window ====
+    // ---------------------------------------------------------
+    let start = Math.max(1, current - 2);
+    let end = Math.min(totalPages, start + maxButtons - 1);
+
+    if (end - start < maxButtons - 1) {
       start = Math.max(1, end - maxButtons + 1);
     }
 
     if (start > 1) {
-      parts.push(createLi("1", false, current === 1, 1));
+      html += make("1", 1, false, current === 1);
       if (start > 2)
-        parts.push(
-          `<li class="page-item disabled"><span class="page-link">…</span></li>`
-        );
+        html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
     }
 
     for (let p = start; p <= end; p++) {
-      parts.push(createLi(String(p), false, p === current, p));
+      html += make(String(p), p, false, p === current);
     }
 
     if (end < totalPages) {
       if (end < totalPages - 1)
-        parts.push(
-          `<li class="page-item disabled"><span class="page-link">…</span></li>`
-        );
-      parts.push(
-        createLi(String(totalPages), false, current === totalPages, totalPages)
+        html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
+      html += make(
+        String(totalPages),
+        totalPages,
+        false,
+        current === totalPages
       );
     }
 
-    parts.push(createLi("Next", current >= totalPages, false, current + 1));
-    ul.innerHTML = parts.join("\n");
+    // Next
+    if (current >= totalPages) {
+      html += make("Next", totalPages, true, false);
+    } else {
+      html += make("Next", current + 1, false, false);
+    }
+
+    ul.innerHTML = html;
+
     ul.querySelectorAll("a.page-link").forEach((a) => {
       a.addEventListener("click", (e) => {
         e.preventDefault();
-        const li = a.closest(".page-item");
-        if (
-          !li ||
-          li.classList.contains("disabled") ||
-          li.classList.contains("active")
-        )
-          return;
-        const p = Number(a.dataset.page) || 1;
+        const p = Number(a.dataset.page);
+        if (!p || p < 1 || p > totalPages) return;
+        if (p === this.page) return;
         this.loadPage(p);
       });
     });
   }
 }
 
-// init on DOM ready
+// ---------------------------------------------------------
+// INIT
+// ---------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
-  if (!document.querySelector("#reco-table")) return;
-  window.recommendApp = new RecommendApp({ pageSize: 15 });
+  if (!document.getElementById("ganttChart")) return;
+
+  window.TimelineGanttApp = new TimelineGantt({
+    chartId: "ganttChart",
+    paginationId: "pagination",
+    pageSize: 15,
+    tf: "1M",
+  });
 });

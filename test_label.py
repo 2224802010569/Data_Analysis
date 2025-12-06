@@ -12,7 +12,7 @@ def main():
     # df = LoadUseCase().load()
     # df=LabelWorkflow().run()
     df = LabelOutput().get()
-    df = pd.DataFrame([vars(label) for label in df])
+    # df = pd.DataFrame([vars(label) for label in df])
     to_csv(df)
 
 if __name__ == "__main__":

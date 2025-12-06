@@ -1,5 +1,3 @@
-
-
 from datetime import datetime
 from features.label.usecase.fetch_and_save import FetchAndSaveUseCase
 from features.label.usecase.labels import LabelUsecase

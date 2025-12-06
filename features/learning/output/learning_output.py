@@ -1,13 +1,10 @@
 import pandas as pd
-from features.label.workflow.label_workflow import LabelWorkflow
+from features.learning.workflow.learning_workflow import LearningWorkflow
 
 class EngineeringOutput:
     def __init__(self):
-        self.workflow = LabelWorkflow()
+        self.workflow = LearningWorkflow()
 
-    def get(self, timeframe: str = "1M") -> pd.DataFrame:
-        df = self.workflow.run(timeframe=timeframe)
-        if df.empty or df is None:
-            print("⚠️ No data found for output.")
-            return pd.DataFrame()
+    def get(self) -> pd.DataFrame:
+        df = self.workflow.run()
         return df
