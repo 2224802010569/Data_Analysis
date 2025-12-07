@@ -1,7 +1,7 @@
 import os
 from docx import Document
 
-VERSION = "1.0.4"
+VERSION = "1.0.5"
 SERVICE_NAME = "font_end"
 OUTPUT_NAME = f"{VERSION}_{SERVICE_NAME}.docx"
 

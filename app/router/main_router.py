@@ -34,7 +34,7 @@ def load_ai_resources():
 
 @main_router.route("/")
 def index():
-    return render_template("main/main.html")
+    return render_template("main/main.html", current_page="home")
 
 @main_router.get("/api/data")
 def api_get_data():

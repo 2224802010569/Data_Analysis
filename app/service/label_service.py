@@ -12,6 +12,7 @@ class LabelService:
     
     def get_page(self, tf: str, page: int, page_size: int = 20):
         df = self.get_label_data(tf)
+        df = self._filter_labels(df)
         df = df.sort_values("t0")
         if df is None:
             return self._empty_page(page)
@@ -56,3 +57,12 @@ class LabelService:
                 "label": r.get("label") or r.get("Label") or r.get("action") or "none",
             })
         return normalized
+    
+    def _filter_labels(self, df):
+        hidden_labels=["none", "normal"]
+        if not hidden_labels:
+            return df
+        hidden = set([x.lower() for x in hidden_labels])
+        df = df[~df["label"].astype(str).str.lower().isin(hidden)]
+
+        return df

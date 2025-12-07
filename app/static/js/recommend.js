@@ -1,10 +1,3 @@
-// ====================================================================
-// recommend.js — Google Timeline Gantt (FULL FIXED VERSION)
-// ====================================================================
-
-// ---------------------------------------------------------
-// API client
-// ---------------------------------------------------------
 class RecommendApi {
   constructor(base = "/api") {
     this.base = base;
@@ -22,9 +15,6 @@ class RecommendApi {
   }
 }
 
-// ---------------------------------------------------------
-// Utility
-// ---------------------------------------------------------
 function parseDate(v) {
   if (!v) return null;
   const d = new Date(v);
@@ -40,12 +30,8 @@ const DEFAULT_COLORS = {
   sell: "#db4437",
   strong: "#4285f4",
   weak: "#f4b400",
-  none: "#9e9e9e",
 };
 
-// ---------------------------------------------------------
-// Timeline Gantt
-// ---------------------------------------------------------
 class TimelineGantt {
   constructor(opts = {}) {
     this.tf = opts.tf || "1M";
@@ -57,12 +43,9 @@ class TimelineGantt {
     );
 
     this.api = new RecommendApi(opts.base || "/api");
-
     this.page = 1;
     this.totalPages = 1;
-
     this.tfButtons = document.querySelectorAll(".tf-btn");
-
     google.charts.load("current", { packages: ["timeline"] });
     google.charts.setOnLoadCallback(() => {
       this.setupTfButtons();
@@ -70,69 +53,48 @@ class TimelineGantt {
     });
   }
 
-  // ---------------------------------------------------------
-  // Timeframe buttons
-  // ---------------------------------------------------------
   setupTfButtons() {
     if (!this.tfButtons) return;
-
     this.tfButtons.forEach((btn) => {
       btn.addEventListener("click", async () => {
         const tf = btn.dataset.tf;
         if (!tf) return;
-
         this.tf = tf;
-
-        // ==== FIX #4 TF change (DEBUG) ====
         console.log("Timeframe changed to:", this.tf);
-
         this.tfButtons.forEach((b) => {
           b.classList.remove("active", "btn-primary");
           b.classList.add("btn-outline-primary");
         });
-
         btn.classList.add("active", "btn-primary");
         btn.classList.remove("btn-outline-primary");
-
         await this.loadPage(1);
       });
     });
   }
 
-  // ---------------------------------------------------------
-  // Load page
-  // ---------------------------------------------------------
   async loadPage(page = 1) {
     page = Math.max(1, Math.floor(page));
     this.page = page;
-
     try {
       const res = await this.api.fetchRecommendations({
         tf: this.tf,
         page: this.page,
         page_size: this.pageSize,
       });
-
       const records = Array.isArray(res.records) ? res.records : [];
       this.totalPages = Math.max(1, Number(res.total_pages) || 1);
-
       console.log("DATA RAW (first 2) =>", records.slice(0, 2));
-
-      // If out-of-range, clamp & reload 1 time
       if (this.page > this.totalPages) {
         this.page = this.totalPages;
-
         const res2 = await this.api.fetchRecommendations({
           tf: this.tf,
           page: this.page,
           page_size: this.pageSize,
         });
-
         this.renderTimeline(res2.records || []);
         this.renderPagination(this.totalPages, this.page);
         return;
       }
-
       this.renderTimeline(records);
       this.renderPagination(this.totalPages, this.page);
     } catch (err) {
@@ -144,18 +106,13 @@ class TimelineGantt {
     }
   }
 
-  // ---------------------------------------------------------
-  // Render Timeline Gantt
-  // ---------------------------------------------------------
   renderTimeline(records) {
     if (!this.chartEl) return;
-
     const dataTable = new google.visualization.DataTable();
     dataTable.addColumn({ type: "string", id: "Row" });
     dataTable.addColumn({ type: "string", id: "Bar" });
     dataTable.addColumn({ type: "date", id: "Start" });
     dataTable.addColumn({ type: "date", id: "End" });
-
     const rows = records
       .map((r) => {
         const start = parseDate(r.t0);
@@ -168,48 +125,48 @@ class TimelineGantt {
         };
       })
       .filter((x) => x);
-
     if (!rows.length) {
       this.chartEl.innerHTML =
         "<div class='text-center text-muted p-3'>Không có dữ liệu</div>";
       return;
     }
-
-    const labelOrder = ["buy", "sell", "strong", "weak"];
+    const labelOrder = Object.keys(DEFAULT_COLORS);
     const extra = [
       ...new Set(rows.map((r) => r.key).filter((k) => !labelOrder.includes(k))),
     ];
     const uniqueLabels = labelOrder.concat(extra);
-
-    const tableRows = rows.map((r) => [
-      r.key.toUpperCase(),
-      "",
-      r.start,
-      r.end,
-    ]);
+    const rowMap = {};
+    uniqueLabels.forEach((key) => (rowMap[key] = []));
+    rows.forEach((r) => rowMap[r.key].push(r));
+    const tableRows = [];
+    uniqueLabels.forEach((key) => {
+      if (rowMap[key].length === 0) {
+        const now = new Date();
+        tableRows.push([
+          key.toUpperCase(),
+          "",
+          now,
+          new Date(now.getTime() + 1),
+        ]);
+      } else {
+        rowMap[key].forEach((r) =>
+          tableRows.push([key.toUpperCase(), "", r.start, r.end])
+        );
+      }
+    });
     dataTable.addRows(tableRows);
-
     const colors = uniqueLabels.map(
       (k) => DEFAULT_COLORS[k] || DEFAULT_COLORS.none
     );
-
     const rowCount = uniqueLabels.length;
     const height = Math.max(200, rowCount * 50 + 80);
-
-    // ==== FIX #2 Width ====
     this.chartEl.style.width = "100%";
     this.chartEl.style.height = height + "px";
-
-    // ---------------------------------------------------------
-    // ==== FIX #3 Timeline Ticks (Dynamic by timeframe) ====
-    // ---------------------------------------------------------
     const starts = rows.map((r) => r.start.getTime());
     const ends = rows.map((r) => r.end.getTime());
     const minT = new Date(Math.min(...starts));
     const maxT = new Date(Math.max(...ends));
-
     const ticks = [];
-
     if (this.tf === "1M") {
       let d = new Date(minT.getFullYear(), minT.getMonth(), 1);
       const lim = new Date(maxT.getFullYear(), maxT.getMonth() + 1, 1);
@@ -230,7 +187,6 @@ class TimelineGantt {
         d.setHours(d.getHours() + 1);
       }
     }
-
     const options = {
       height,
       colors,
@@ -240,25 +196,18 @@ class TimelineGantt {
       },
       hAxis: { ticks },
     };
-
     const chart = new google.visualization.Timeline(this.chartEl);
     chart.draw(dataTable, options);
   }
 
-  // ---------------------------------------------------------
-  // Pagination
-  // ---------------------------------------------------------
   renderPagination(totalPages, current) {
     const ul = this.paginationEl;
     if (!ul) return;
-
     if (totalPages <= 1) {
       ul.innerHTML = "";
       return;
     }
-
     const maxButtons = 5;
-
     const make = (text, page, disabled, active) => `
       <li class="page-item ${disabled ? "disabled" : ""} ${
       active ? "active" : ""
@@ -266,32 +215,21 @@ class TimelineGantt {
         <a class="page-link" data-page="${page}" href="#">${text}</a>
       </li>
     `;
-
     let html = "";
-
-    // Prev
     html += make("Prev", Math.max(1, current - 1), current <= 1, false);
-
-    // ---------------------------------------------------------
-    // ==== FIX #1 Pagination Window ====
-    // ---------------------------------------------------------
     let start = Math.max(1, current - 2);
     let end = Math.min(totalPages, start + maxButtons - 1);
-
     if (end - start < maxButtons - 1) {
       start = Math.max(1, end - maxButtons + 1);
     }
-
     if (start > 1) {
       html += make("1", 1, false, current === 1);
       if (start > 2)
         html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
     }
-
     for (let p = start; p <= end; p++) {
       html += make(String(p), p, false, p === current);
     }
-
     if (end < totalPages) {
       if (end < totalPages - 1)
         html += `<li class="page-item disabled"><span class="page-link">…</span></li>`;
@@ -302,16 +240,12 @@ class TimelineGantt {
         current === totalPages
       );
     }
-
-    // Next
     if (current >= totalPages) {
       html += make("Next", totalPages, true, false);
     } else {
       html += make("Next", current + 1, false, false);
     }
-
     ul.innerHTML = html;
-
     ul.querySelectorAll("a.page-link").forEach((a) => {
       a.addEventListener("click", (e) => {
         e.preventDefault();
@@ -324,12 +258,8 @@ class TimelineGantt {
   }
 }
 
-// ---------------------------------------------------------
-// INIT
-// ---------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
   if (!document.getElementById("ganttChart")) return;
-
   window.TimelineGanttApp = new TimelineGantt({
     chartId: "ganttChart",
     paginationId: "pagination",

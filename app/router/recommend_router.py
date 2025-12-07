@@ -6,7 +6,7 @@ label_service = LabelService()
 
 @recommend_router.get("/recommend")
 def recommend_page():
-    return render_template("main/recommend.html")
+    return render_template("main/recommend.html", current_page="recommend")
 
 
 @recommend_router.get("/api/label")
@@ -28,7 +28,6 @@ def api_recommendations():
     page = int(request.args.get("page", 1))
     page_size = int(request.args.get("page_size", 20))
     result = label_service.get_page(tf=tf, page=page, page_size=page_size)
-
     return jsonify({
         "status": "ok",
         "page": result.get("page", page),
