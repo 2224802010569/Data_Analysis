@@ -5,8 +5,8 @@ from datetime import datetime
 class Config:
     # ===== Project Paths =====
     BASE_DIR = Path(__file__).resolve().parents[1]
-    DATA_DIR = BASE_DIR/ "features" / "data"
-    STORAGE_DIR = DATA_DIR / "domain" / "storage" / "data.db"
+    STORAGE_DIR = BASE_DIR/ "features" / "data" / "domain" / "storage" / "data.db"
+    LEARNING_DIR = BASE_DIR/ "features" / "learning"/ "domain" / "storage"
 
     # ===== Data Source =====
     EXCHANGE = "binance"       # For ccxt

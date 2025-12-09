@@ -3,9 +3,9 @@ import json
 import sqlite3
 from datetime import datetime
 from app.config import config as con
-from features.label.domain.entities.label import Label
+from features.learning.domain.entities.module import Module
 
-entities = Label
+entities = Module
 
 class SQLService:
 
@@ -58,12 +58,12 @@ class SQLService:
                 rows
             )
 
-    def load(self, timeframe: str = "1M") -> list[entities]:
+    def load(self, module_id: str) -> list[entities]:
         with sqlite3.connect(self.db_path) as conn:
             cur = conn.cursor()
             cur.execute(
-                f"SELECT * FROM {self.table} WHERE timeframe = ?",
-                (timeframe,)
+                f"SELECT * FROM {self.table} WHERE module_id = ?",
+                (module_id,)
             )
             rows = cur.fetchall()
         results = []

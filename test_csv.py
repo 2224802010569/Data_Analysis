@@ -3,13 +3,12 @@ import pandas as pd
 from datetime import datetime
 
 EXPORT_DIR = "exports"
-name = "test.csv"
 
 def ensure_export_dir():
     os.makedirs(EXPORT_DIR, exist_ok=True)
     return EXPORT_DIR
 
-def to_csv(df: pd.DataFrame):
+def to_csv(name, df: pd.DataFrame):
     """Ghi DataFrame ra file CSV để kiểm tra đầu ra."""
     if df is None or df.empty:
         print("⚠️ Không có dữ liệu để xuất CSV.")

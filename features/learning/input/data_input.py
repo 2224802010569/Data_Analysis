@@ -7,5 +7,4 @@ class DataInput:
 
     def load(self, timeframe: str = "1M") -> pd.DataFrame:
         df = self.data_output.get(timeframe=timeframe)
-        df = df.dropna(subset=["timestamp", "close"])
         return df

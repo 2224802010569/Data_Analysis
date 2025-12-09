@@ -1,9 +1,12 @@
-from features.label.service.sql_service import SQLService
-from features.label.domain.entities.label import Label
+from features.learning.service.sql_service import SQLService
+from features.learning.domain.entities.module import Module
 
 class LoadUseCase:
     def __init__(self):
         self.sql = SQLService()
     
-    def load(self,timeframe: str = "1M") -> list[Label]:
-        return self.sql.load(timeframe)
+    def load(self, module_id: str ) -> Module:
+        return self.sql.load(module_id=module_id)[0]
+    
+    def load_best(self) -> Module:
+        pass
