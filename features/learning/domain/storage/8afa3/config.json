@@ -1,0 +1,12 @@
+{
+    "seed": 10,
+    "window_size": 35,
+    "num_classes": 3,
+    "feature_cols": [
+        "timestamp",
+        "timeframe",
+        "indicator",
+        "temporal"
+    ],
+    "note": "Thu nghiem cau hinh de vuot qua 60%"
+}

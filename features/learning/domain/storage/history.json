@@ -84,49 +84,47 @@
                 ],
                 "note": "auto-generated config"
             }
-        }
-    ],
-    "meta_pool": [
-        {
-            "train_index": 5,
-            "module_id": "d5ab5",
-            "accuracy": 0.6851224303245544,
-            "config": {
-                "seed": 30,
-                "window_size": 40,
-                "num_classes": 6,
-                "feature_cols": [
-                    "timestamp",
-                    "timeframe",
-                    "indicator",
-                    "temporal"
-                ],
-                "note": "auto-generated config"
-            }
         },
         {
-            "train_index": 4,
-            "module_id": "16f32",
-            "accuracy": 0.678260862827301,
-            "config": {
-                "seed": 30,
-                "window_size": 50,
-                "num_classes": 6,
-                "feature_cols": [
-                    "timestamp",
-                    "timeframe",
-                    "indicator",
-                    "temporal"
-                ],
-                "note": "auto-generated config"
-            }
-        },
-        {
-            "train_index": 3,
-            "module_id": "f52ae",
-            "accuracy": 0.684548556804657,
+            "train_index": 6,
+            "module_id": "8386e",
+            "accuracy": 0.6814591884613037,
             "config": {
                 "seed": 88,
+                "window_size": 36,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 7,
+            "module_id": "e184a",
+            "accuracy": 0.6821442246437073,
+            "config": {
+                "seed": 67,
+                "window_size": 46,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 8,
+            "module_id": "96cda",
+            "accuracy": 0.681526243686676,
+            "config": {
+                "seed": 31,
                 "window_size": 48,
                 "num_classes": 6,
                 "feature_cols": [
@@ -139,12 +137,116 @@
             }
         },
         {
-            "train_index": 2,
-            "module_id": "9c042",
-            "accuracy": 0.6834775805473328,
+            "train_index": 9,
+            "module_id": "11f32",
+            "accuracy": 0.6869826912879944,
             "config": {
-                "seed": 91,
-                "window_size": 38,
+                "seed": 100,
+                "window_size": 37,
+                "num_classes": 3,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "Thu nghiem cau hinh de vuot qua 60%"
+            }
+        },
+        {
+            "train_index": 10,
+            "module_id": "1e2d3",
+            "accuracy": 0.6898235082626343,
+            "config": {
+                "seed": 17,
+                "window_size": 32,
+                "num_classes": 3,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "Thu nghiem cau hinh de vuot qua 60%"
+            }
+        },
+        {
+            "train_index": 11,
+            "module_id": "8afa3",
+            "accuracy": 0.6939849853515625,
+            "config": {
+                "seed": 10,
+                "window_size": 35,
+                "num_classes": 3,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "Thu nghiem cau hinh de vuot qua 60%"
+            }
+        }
+    ],
+    "meta_pool": [
+        {
+            "train_index": 11,
+            "module_id": "8afa3",
+            "accuracy": 0.6939849853515625,
+            "config": {
+                "seed": 10,
+                "window_size": 35,
+                "num_classes": 3,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "Thu nghiem cau hinh de vuot qua 60%"
+            }
+        },
+        {
+            "train_index": 10,
+            "module_id": "1e2d3",
+            "accuracy": 0.6898235082626343,
+            "config": {
+                "seed": 17,
+                "window_size": 32,
+                "num_classes": 3,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "Thu nghiem cau hinh de vuot qua 60%"
+            }
+        },
+        {
+            "train_index": 9,
+            "module_id": "11f32",
+            "accuracy": 0.6869826912879944,
+            "config": {
+                "seed": 100,
+                "window_size": 37,
+                "num_classes": 3,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "Thu nghiem cau hinh de vuot qua 60%"
+            }
+        },
+        {
+            "train_index": 8,
+            "module_id": "96cda",
+            "accuracy": 0.681526243686676,
+            "config": {
+                "seed": 31,
+                "window_size": 48,
                 "num_classes": 6,
                 "feature_cols": [
                     "timestamp",
@@ -156,12 +258,12 @@
             }
         },
         {
-            "train_index": 1,
-            "module_id": "6bd2d",
-            "accuracy": 0.6797139644622803,
+            "train_index": 7,
+            "module_id": "e184a",
+            "accuracy": 0.6821442246437073,
             "config": {
-                "seed": 95,
-                "window_size": 38,
+                "seed": 67,
+                "window_size": 46,
                 "num_classes": 6,
                 "feature_cols": [
                     "timestamp",
@@ -173,6 +275,6 @@
             }
         }
     ],
-    "best_module": "d5ab5",
-    "train_counter": 5
+    "best_module": "8afa3",
+    "train_counter": 11
 }

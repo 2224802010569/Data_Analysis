@@ -1,0 +1,12 @@
+{
+    "seed": 67,
+    "window_size": 46,
+    "num_classes": 6,
+    "feature_cols": [
+        "timestamp",
+        "timeframe",
+        "indicator",
+        "temporal"
+    ],
+    "note": "auto-generated config"
+}

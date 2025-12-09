@@ -5,7 +5,6 @@ import tensorflow as tf
 import joblib
 import os
 
-from app.service.data_service import DataService
 from features.engineering.service.sql_service import SQLService as EngineeringSqlService
 from features.data.usecase.load import LoadUseCase
 
@@ -14,12 +13,10 @@ main_router = Blueprint("main_router", __name__)
 MODEL_PATH = "models/lstm_v1.keras"
 SCALER_PATH = "models/scaler.pkl"
 
-# Biến global để cache model
 ai_model = None
 ai_scaler = None
 
 def load_ai_resources():
-    """Load model và scaler một lần duy nhất vào RAM"""
     global ai_model, ai_scaler
     try:
         if os.path.exists(MODEL_PATH) and os.path.exists(SCALER_PATH):
@@ -38,16 +35,25 @@ def index():
 
 @main_router.get("/api/data")
 def api_get_data():
-    tf = request.args.get("tf", "1d")
+    tf_req = request.args.get("tf", "1d")
     
-    # 1. Load Data (Engineering & Candle)
-    eng_service = EngineeringSqlService()
-    df_eng = eng_service.get_all_as_df(timeframe=tf)
-    
-    candles = LoadUseCase().load(type="sql", timeframe=tf)
-    if not candles or df_eng.empty:
-        return jsonify({"status": "empty", "data": []})
+    # 1. Load Data
+    try:
+        candles = LoadUseCase().load(type="sql", timeframe=tf_req)
+        if not candles:
+            return jsonify({"status": "empty", "data": []})
 
+        eng_service = EngineeringSqlService()
+        try:
+            df_eng = eng_service.get_all_as_df(timeframe=tf_req)
+        except:
+            df_eng = pd.DataFrame()
+
+    except Exception as e:
+        print(f"⚠️ Lỗi Load Data: {e}")
+        return jsonify({"status": "error", "data": []})
+
+    # Convert Candles
     df_price = pd.DataFrame([{
         "timestamp": c.timestamp,
         "open": c.open,
@@ -56,75 +62,90 @@ def api_get_data():
         "close": c.close,
         "volume": c.volume
     } for c in candles])
-
-    # 2. Merge & Clean
-    df_eng['timestamp'] = pd.to_datetime(df_eng['timestamp'])
     df_price['timestamp'] = pd.to_datetime(df_price['timestamp'])
-    
-    df_full = pd.merge(df_eng, df_price, on="timestamp", how="inner")
-    df_full = df_full.sort_values('timestamp')
 
-    # 3. Tối ưu hóa: Chỉ lấy 1000 nến gần nhất để xử lý
-    # (Cộng thêm 30 nến quá khứ để đủ window cho nến đầu tiên)
-    limit = 1000
-    if len(df_full) > limit + 30:
-        df_process = df_full.tail(limit + 30).copy().reset_index(drop=True)
-    else:
-        df_process = df_full.copy().reset_index(drop=True)
-
-    # 4. Chạy AI Dự báo (Batch Processing - Siêu nhanh)
-    has_ai = load_ai_resources()
-    
-    if has_ai:
+    # 2. Merge Data
+    if not df_eng.empty:
         try:
-            # Lọc features
-            exclude_cols = ['timestamp', 'timeframe', 'label', 't0', 't1', 'id', 'created_at', 'open', 'high', 'low', 'close', 'volume', 'ai_action', 'ai_confidence']
-            feature_cols = [c for c in df_eng.columns if c not in exclude_cols]
-            
-            data_raw = df_process[feature_cols].values
-            data_scaled = ai_scaler.transform(data_raw)
-            
-            # Tạo Window (Vector hóa)
-            X_batch = []
-            valid_indices = []
-            window_size = 30
-            
-            for i in range(window_size, len(data_scaled)):
-                X_batch.append(data_scaled[i-window_size:i])
-                valid_indices.append(i)
-            
-            # Khởi tạo cột kết quả mặc định
-            df_process['ai_action'] = "NONE"
-            df_process['ai_confidence'] = 0.0
-
-            if X_batch:
-                X_batch = np.array(X_batch)
-                
-                # Dự đoán 1 lần cho toàn bộ batch (Thay vì loop từng cái)
-                predictions = ai_model.predict(X_batch, verbose=0)
-                
-                # Xử lý kết quả hàng loạt
-                pred_classes = np.argmax(predictions, axis=1)
-                pred_confs = np.max(predictions, axis=1)
-                
-                action_map = {0: 'NONE', 1: 'BUY', 2: 'SELL', 3: 'STRONG', 4: 'WEAK'}
-                mapped_actions = [action_map.get(x, "NONE") for x in pred_classes]
-                
-                # Gán ngược lại DataFrame
-                df_process.loc[valid_indices, 'ai_action'] = mapped_actions
-                df_process.loc[valid_indices, 'ai_confidence'] = pred_confs.astype(float)
-
-        except Exception as e:
-            print(f"⚠️ Lỗi khi chạy AI: {e}")
-            df_process['ai_action'] = "NONE"
-            df_process['ai_confidence'] = 0.0
+            df_eng['timestamp'] = pd.to_datetime(df_eng['timestamp'])
+            # Left join để giữ nến
+            df_full = pd.merge(df_price, df_eng, on="timestamp", how="left")
+        except:
+            df_full = df_price.copy()
     else:
+        df_full = df_price.copy()
+    
+    df_full = df_full.sort_values('timestamp').reset_index(drop=True)
+    
+    # 3. Limit Data
+    DISPLAY_LIMIT = 1000
+    BUFFER = 100 
+    
+    if len(df_full) > (DISPLAY_LIMIT + BUFFER):
+        df_process = df_full.tail(DISPLAY_LIMIT + BUFFER).copy().reset_index(drop=True)
+    else:
+        df_process = df_full.copy()
+
+    # Init AI columns
+    if 'ai_action' not in df_process.columns:
         df_process['ai_action'] = "NONE"
+    if 'ai_confidence' not in df_process.columns:
         df_process['ai_confidence'] = 0.0
 
-    # 5. Trả về kết quả (Lấy đúng limit yêu cầu)
-    df_final = df_process.tail(limit)
+    # 4. Chạy AI
+    has_ai = load_ai_resources()
+    ignore_cols = ['timestamp', 'timeframe', 'label', 't0', 't1', 'id', 'created_at', 
+                   'open', 'high', 'low', 'close', 'volume', 'ai_action', 'ai_confidence']
+    potential_features = [c for c in df_process.columns if c not in ignore_cols]
+
+    if has_ai and len(potential_features) > 0 and not df_process.empty:
+        try:
+            feature_cols = potential_features + ["open", "high", "low", "close", "volume"]
+            # Chỉ lấy dòng không bị NaN
+            mask_valid = df_process[potential_features].notna().all(axis=1)
+            
+            if mask_valid.any():
+                data_subset = df_process.loc[mask_valid, feature_cols].values.astype(np.float32)
+                expected_input = ai_scaler.n_features_in_
+                n_features = data_subset.shape[1]
+                
+                if expected_input % n_features == 0:
+                    window_size = expected_input // n_features
+                    if len(data_subset) > window_size:
+                        X_list = []
+                        valid_indices_map = df_process.loc[mask_valid].index
+                        batch_indices = []
+
+                        for i in range(window_size, len(data_subset)):
+                            window_data = data_subset[i-window_size : i]
+                            X_list.append(window_data.reshape(1, -1))
+                            batch_indices.append(valid_indices_map[i])
+                        
+                        if X_list:
+                            X_batch = np.vstack(X_list)
+                            X_final = ai_scaler.transform(X_batch).reshape(-1, window_size, n_features)
+                            predictions = ai_model.predict(X_final, verbose=0)
+                            
+                            pred_classes = np.argmax(predictions, axis=1)
+                            pred_confs = np.max(predictions, axis=1)
+                            action_map = {0: 'NONE', 1: 'BUY', 2: 'SELL', 3: 'STRONG', 4: 'WEAK'}
+                            
+                            df_process.loc[batch_indices, 'ai_action'] = [action_map.get(x, "NONE") for x in pred_classes]
+                            df_process.loc[batch_indices, 'ai_confidence'] = pred_confs
+        except Exception as e:
+            print(f"⚠️ AI Skip: {e}")
+
+    # 5. Format Output (QUAN TRỌNG NHẤT)
+    df_final = df_process.tail(DISPLAY_LIMIT).copy()
+    df_final['timestamp'] = df_final['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+    # --- FIX LỖI 1M ---
+    # Thay thế toàn bộ NaN bằng None (thành null trong JSON) để JS không bị lỗi
+    df_final = df_final.replace({np.nan: None})
     
+    # Ép kiểu cho confidence để tránh lỗi numpy float
+    df_final['ai_confidence'] = df_final['ai_confidence'].apply(lambda x: float(x) if x is not None else 0.0)
+
     return jsonify({
         "status": "ok",
         "data": df_final.to_dict(orient="records")

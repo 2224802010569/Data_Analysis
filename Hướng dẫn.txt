@@ -3,3 +3,11 @@ mỗi lần chạy tạo 3 module trong domain\storage
 
 hiện tại, tỉ lệ đúng vào khoảng 60%.
 Muốn nhiều hơn thì donate đi bạn :> hahaha
+
+Chạy các lệnh:
+python run_eng.py
+python app/main.py
+
+
+Do tôi không up file data.db lên, nên máy ông đang thiếu dữ liệu chỉ số
+kỹ thuật cho khung 1H và 1M. Ông cần chạy run_eng.py để máy tự tính toán lại
