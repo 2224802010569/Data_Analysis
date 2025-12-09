@@ -1,5 +1,5 @@
-kiểm tra features\data\domain\storage\
-- Nếu chưa có data.db, chạy test_label.py
+features\learning\workflow\ml_workflow.py có thể chạy độc lập
+mỗi lần chạy tạo 3 module trong domain\storage
 
-chạy app\main.py
-mở trình duyệt, chạy địa chỉ chương trình tạo
+hiện tại, tỉ lệ đúng vào khoảng 60%.
+Muốn nhiều hơn thì donate đi bạn :> hahaha

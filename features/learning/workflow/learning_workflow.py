@@ -6,8 +6,8 @@ class LearninglWorkflow:
         self.load = LoadUseCase().load
 
     def run(self):
-        df = self.load_best()
+        df = self.load()
         if not df:
             FetchAndSaveUseCase().execute()
-            df = self.load_best()
+            df = self.load()
         return df

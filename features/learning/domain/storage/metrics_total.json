@@ -1,0 +1,22 @@
+[
+    {
+        "module_id": "6bd2d",
+        "accuracy": 0.6797139644622803
+    },
+    {
+        "module_id": "9c042",
+        "accuracy": 0.6834775805473328
+    },
+    {
+        "module_id": "f52ae",
+        "accuracy": 0.684548556804657
+    },
+    {
+        "module_id": "16f32",
+        "accuracy": 0.678260862827301
+    },
+    {
+        "module_id": "d5ab5",
+        "accuracy": 0.6851224303245544
+    }
+]

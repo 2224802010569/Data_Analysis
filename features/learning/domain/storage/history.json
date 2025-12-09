@@ -1,0 +1,178 @@
+{
+    "timeline": [
+        {
+            "train_index": 1,
+            "module_id": "6bd2d",
+            "accuracy": 0.6797139644622803,
+            "config": {
+                "seed": 95,
+                "window_size": 38,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 2,
+            "module_id": "9c042",
+            "accuracy": 0.6834775805473328,
+            "config": {
+                "seed": 91,
+                "window_size": 38,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 3,
+            "module_id": "f52ae",
+            "accuracy": 0.684548556804657,
+            "config": {
+                "seed": 88,
+                "window_size": 48,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 4,
+            "module_id": "16f32",
+            "accuracy": 0.678260862827301,
+            "config": {
+                "seed": 30,
+                "window_size": 50,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 5,
+            "module_id": "d5ab5",
+            "accuracy": 0.6851224303245544,
+            "config": {
+                "seed": 30,
+                "window_size": 40,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        }
+    ],
+    "meta_pool": [
+        {
+            "train_index": 5,
+            "module_id": "d5ab5",
+            "accuracy": 0.6851224303245544,
+            "config": {
+                "seed": 30,
+                "window_size": 40,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 4,
+            "module_id": "16f32",
+            "accuracy": 0.678260862827301,
+            "config": {
+                "seed": 30,
+                "window_size": 50,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 3,
+            "module_id": "f52ae",
+            "accuracy": 0.684548556804657,
+            "config": {
+                "seed": 88,
+                "window_size": 48,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 2,
+            "module_id": "9c042",
+            "accuracy": 0.6834775805473328,
+            "config": {
+                "seed": 91,
+                "window_size": 38,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        },
+        {
+            "train_index": 1,
+            "module_id": "6bd2d",
+            "accuracy": 0.6797139644622803,
+            "config": {
+                "seed": 95,
+                "window_size": 38,
+                "num_classes": 6,
+                "feature_cols": [
+                    "timestamp",
+                    "timeframe",
+                    "indicator",
+                    "temporal"
+                ],
+                "note": "auto-generated config"
+            }
+        }
+    ],
+    "best_module": "d5ab5",
+    "train_counter": 5
+}

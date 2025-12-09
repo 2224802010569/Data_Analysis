@@ -17,10 +17,13 @@ class Config:
     START_DATE = datetime(2017, 1, 1)
     END_DATE = datetime(2025, 1, 1)
 
-    # ===== API and Storage =====
+    # ===== API =====
     API_TIMEOUT = 10           # seconds
     CSV_ENCODING = "utf-8"
     AUTO_CREATE_DIRS = True
+
+    # ===== Learning =====
+    NUMBER_MODULE_EACH_RUN = 3
 
     # ===== Misc =====
     DEBUG = True
