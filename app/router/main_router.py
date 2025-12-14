@@ -7,6 +7,8 @@ import os
 
 from features.engineering.service.sql_service import SQLService as EngineeringSqlService
 from features.data.usecase.load import LoadUseCase
+from features.engineering.domain.entities.engineering_forecast import Engineering_Forecast
+# from features.learning.output.learning_output import LearningOutput
 
 main_router = Blueprint("main_router", __name__)
 
@@ -35,15 +37,16 @@ def index():
 
 @main_router.get("/api/data")
 def api_get_data():
-    tf_req = request.args.get("tf", "1d")
+    tf_req = request.args.get("tf", "1M")
     
     # 1. Load Data
     try:
-        candles = LoadUseCase().load(type="sql", timeframe=tf_req)
+        candles = LoadUseCase().load(type="sql", timeframe=tf_req) 
+        # candles = LearningOutput().get(timeframe=tf_req)
         if not candles:
             return jsonify({"status": "empty", "data": []})
 
-        eng_service = EngineeringSqlService()
+        eng_service = EngineeringSqlService(entities=Engineering_Forecast)
         try:
             df_eng = eng_service.get_all_as_df(timeframe=tf_req)
         except:
@@ -95,7 +98,7 @@ def api_get_data():
     # 4. Chạy AI
     has_ai = load_ai_resources()
     ignore_cols = ['timestamp', 'timeframe', 'label', 't0', 't1', 'id', 'created_at', 
-                   'open', 'high', 'low', 'close', 'volume', 'ai_action', 'ai_confidence']
+                'open', 'high', 'low', 'close', 'volume', 'ai_action', 'ai_confidence']
     potential_features = [c for c in df_process.columns if c not in ignore_cols]
 
     if has_ai and len(potential_features) > 0 and not df_process.empty:
@@ -135,12 +138,10 @@ def api_get_data():
         except Exception as e:
             print(f"⚠️ AI Skip: {e}")
 
-    # 5. Format Output (QUAN TRỌNG NHẤT)
     df_final = df_process.tail(DISPLAY_LIMIT).copy()
     df_final['timestamp'] = df_final['timestamp'].dt.strftime('%Y-%m-%dT%H:%M:%S')
 
     # --- FIX LỖI 1M ---
-    # Thay thế toàn bộ NaN bằng None (thành null trong JSON) để JS không bị lỗi
     df_final = df_final.replace({np.nan: None})
     
     # Ép kiểu cho confidence để tránh lỗi numpy float

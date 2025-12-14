@@ -1,13 +1,5 @@
 features\learning\workflow\ml_workflow.py có thể chạy độc lập
-mỗi lần chạy tạo 3 module trong domain\storage
+mỗi lần chạy tạo 5 module trong domain\storage
 
-hiện tại, tỉ lệ đúng vào khoảng 60%.
-Muốn nhiều hơn thì donate đi bạn :> hahaha
-
-Chạy các lệnh:
-python run_eng.py
-python app/main.py
-
-
-Do tôi không up file data.db lên, nên máy ông đang thiếu dữ liệu chỉ số
-kỹ thuật cho khung 1H và 1M. Ông cần chạy run_eng.py để máy tự tính toán lại
+Khi xóa data.db sau đó chạy test hoặc ml_workflow.py, code sẽ tự tạo data.db
+tỉ lệ thành công liên quan đến số lượng dữ liệu lựa chọn, càng nhiều dữ liệu chính xác càng cao (đến 1h trên 90%)

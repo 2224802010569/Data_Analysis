@@ -1,6 +1,5 @@
 # features/data/workflow/data_workflow.py
 import pandas as pd
-from app.config import config
 from features.data.usecase.fetch_and_save_data import FetchAndSaveDataUseCase
 from features.data.usecase.load import LoadUseCase
 
@@ -9,7 +8,7 @@ class DataWorkflow:
         data = LoadUseCase().load(type=type, timeframe=timeframe)
         if not data:
             print(f"fetching new data...")
-            FetchAndSaveDataUseCase().execute(timeframes=[timeframe])
+            FetchAndSaveDataUseCase().execute()
             data = LoadUseCase().load(type=type, timeframe=timeframe)
 
         # Chuyển list[Candle] → DataFrame

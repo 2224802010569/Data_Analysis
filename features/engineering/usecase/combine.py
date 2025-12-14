@@ -10,18 +10,19 @@ class CombineUseCase:
         self.indicator_uc = IndicatorUseCase()
         self.temporal_uc = TemporalUseCase()
 
-    def execute(self, timeframe: str = "1M") -> list[Engineering]:
+    def execute(self,timeframe: str = "1M", df:pd.DataFrame = None) -> list[Engineering]:
+        print("combiene\n", df.head())
 
         # Lấy list entity
-        indicators = self.indicator_uc.execute(timeframe)
-        temporals = self.temporal_uc.execute(timeframe)
+        indicators = self.indicator_uc.execute(df=df)
+        temporals = self.temporal_uc.execute(df=df)
 
         # Map theo timestamp
         indicator_map = {i.timestamp: i for i in indicators}
         temporal_map = {t.timestamp: t for t in temporals}
 
         # Thu tất cả timestamps
-        all_timestamps = sorted(set(indicator_map.keys()) | set(temporal_map.keys()))
+        all_timestamps = sorted(indicator_map.keys() & temporal_map.keys())
         e_list: list[Engineering] = []
         for ts in all_timestamps:
             ind = indicator_map.get(ts)

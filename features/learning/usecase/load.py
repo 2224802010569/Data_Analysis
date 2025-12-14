@@ -1,16 +1,20 @@
-from features.learning.service.storage_service import StorageService
+from features.learning.service.csv_service import CSVService
 from features.learning.service.history_service import HistoryService
+from app.config import config as con
 
 class LoadUseCase:
-
     def __init__(self):
         self.history_service = HistoryService()
-        self.storage_service = StorageService()
+        self.csv_service = CSVService()
 
-    def load(self):
-        history = self.history_service.load_global_history()
-        best_module_id = history.get("best_module")
-        if not best_module_id:
+    def load(self, timeframe: str = "1M"):
+        module_id = self.history_service._get_best_module_id(timeframe)
+        if module_id is None:
             return None
-        module_entity = self.storage_service.load_model(best_module_id)
-        return best_module_id, module_entity
+        path = (
+            con.LEARNING_DIR
+            / module_id
+            / f"forecast_{timeframe}.csv"
+        )
+        df = self.csv_service.read_dataframe(path)
+        return df

@@ -1,12 +1,12 @@
 from app.config import config
-from features.label.input.data_input import DataInput
-from features.label.input.engineering_input import EngineeringInput
+from features.label.input.learning_input import LearningInput
+from features.label.input.e_learning_input import EngineeringInput
 from features.label.service.sql_service import SQLService
 from features.label.usecase.labels import LabelUsecase
 class FetchAndSaveUseCase:
     def __init__(self):
         self.sql = SQLService()
-        self.d_data = DataInput()
+        self.d_data = LearningInput()
         self.e_data = EngineeringInput()
 
     def execute(

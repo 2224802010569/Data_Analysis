@@ -6,17 +6,10 @@ from features.engineering.service.indicator_service import IndicatorService
 from features.engineering.input.data_input import DataInput
 
 class IndicatorUseCase:
-    """
-    UseCase: Sinh các chỉ báo kỹ thuật từ dữ liệu giá.
-    Input:  DataFrame (timestamp, open, high, low, close, volume, timeframe)
-    Output: DataFrame có thêm các cột chỉ báo (SMA, EMA, RSI, MACD, BBANDS, v.v.)
-    """
-
     def __init__(self):
         self.service = IndicatorService()
-        self.input_adapter = DataInput()
 
-    def execute(self, timeframe: str = "1M") -> list[Indicator]:
-        df = self.input_adapter.load(timeframe=timeframe)
+    def execute(self, df: pd.DataFrame) -> list[Indicator]:
+        print("indicator\n", df.head())
         indi = self.service.generate(df)
         return indi

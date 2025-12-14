@@ -16,7 +16,7 @@ def to_csv(name, df: pd.DataFrame):
 
     ensure_export_dir()
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    filename = name or f"export_{timestamp}.csv"
+    filename = f"{name}.csv" or f"export_{timestamp}.csv"
     path = os.path.join(EXPORT_DIR, filename)
 
     df.to_csv(path, index=False, encoding="utf-8-sig")

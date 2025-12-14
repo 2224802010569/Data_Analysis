@@ -16,6 +16,8 @@ class Config:
     # ===== Time Range =====
     START_DATE = datetime(2017, 1, 1)
     END_DATE = datetime(2025, 1, 1)
+    START_FORE = datetime(2025, 1, 1)
+    END_FORE = datetime(2027, 1, 1)
 
     # ===== API =====
     API_TIMEOUT = 10           # seconds
@@ -23,7 +25,15 @@ class Config:
     AUTO_CREATE_DIRS = True
 
     # ===== Learning =====
-    NUMBER_MODULE_EACH_RUN = 3
+    NUMBER_MODULE_EACH_RUN = 5
+    EPOCHS = 5
+    BATCH_SIZE = 256
+    FORECAST_HORIZON = {
+        "1h": 24,
+        "1d": 30,
+        "1M": 12,
+    }
+
 
     # ===== Misc =====
     DEBUG = True
